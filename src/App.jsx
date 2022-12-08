@@ -1,49 +1,43 @@
-import { createSignal } from "solid-js";
-import logo from "./assets/logo.svg";
 import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import Item from "./Item";
+import { createSignal, createEffect } from "solid-js";
+
+const timeTicker = 10;
 
 function App() {
-  const [greetMsg, setGreetMsg] = createSignal("");
-  const [name, setName] = createSignal("");
+  const [count, setCount] = createSignal(timeTicker);
+  const [items, setItems] = createSignal([]);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name: name() }));
-  }
+  createEffect(() => {
+    const c = count()
+    setTimeout(async () => {
+      if (c === 0) {
+        const response = await invoke("get_binance_ticker")
+        setItems(response, { equals: false })
+        setCount(timeTicker)
+        return
+      }
+      setCount(c - 1);
+    }, 1000);
+  })
 
   return (
-    <div class="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div class="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://solidjs.com" target="_blank">
-          <img src={logo} class="logo solid" alt="Solid logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and Solid logos to learn more.</p>
-
-      <div class="row">
-        <div>
-          <input
-            id="greet-input"
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="Enter a name..."
-          />
-          <button type="button" onClick={() => greet()}>
-            Greet
-          </button>
+    <div class="grid grid-rows-2 grid-flow-row font-source h-screen bg-background p-1">
+      <div class="font-light">
+        <div class="grid grid-cols-4 gap-4 h-4 content-center text-xs  text-slate-400">
+          <div class="col-span-2">Pair</div>
+          <div class="ml-auto">Price</div>
+          <div class="ml-auto">24h%</div>
         </div>
+        <For each={items()}>
+          {(item) => <Item symbol={item.symbol} priceChangePercent={item.change} lastPrice={item.price}/>}
+        </For>
       </div>
-
-      <p>{greetMsg}</p>
+      <div class="text-xs font-light text-slate-400">
+      </div>
+      <div class="text-xs font-light text-slate-400 ml-auto">
+          <div class="col-span-2">Updating in: {count()}</div>
+      </div>
     </div>
   );
 }
