@@ -1,6 +1,6 @@
 # Tauri + Solid
 
-This template should help get you started developing with Tauri and Solid in Vite.
+A simple application described in this [article](http://philidor.dev/blog/tauri-solidjs-macos).
 
 ## Recommended IDE Setup
 
